@@ -33,6 +33,7 @@ Run all tests and confirm they pass before finalising any change.
 1. **Raw Data Ingestion:** Raw data is fetched online and stored natively in SQLite (creating new tables as needed). Every metric must have a callable function to either fetch fresh delta data or rebuild from 0.
 2. **Component Modeling:** A single raw data metric acts as a system "component." The system applies statistical workflows to manipulate it (e.g., normalizing it into the -2 to +2 scale or building statistical models around it).
 3. **One Component = One Python Script:** Each component must be built as an isolated Python script. This script serves as a "playground" to easily visualize the data and tweak parameters (e.g., lengths, moving averages).
+4. **Agent Knowledge Prerequisite:** Before writing code or specs for any specific metric (e.g., AVIV Ratio, Puell Multiple), AI agents MUST actively research and learn its exact mathematical formula, statistical definition, and cycle implications to prevent implementation hallucinations.
 
 **Ubiquitous Language:**
 - **ValuationOscillator:** The final -2 to +2 bounded score indicating cycle positioning.
