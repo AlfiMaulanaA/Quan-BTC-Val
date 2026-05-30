@@ -1,0 +1,71 @@
+schema: spec-driven
+
+# Project context
+# This is shown to AI when creating artifacts.
+# Adds tech stack, conventions, style guides, domain knowledge, etc.
+context: |
+  Project: BTC Cycle Valuation System
+  
+  Domain Knowledge:
+    - This project builds a quantitative & statistical valuation system to identify Bitcoin cycle peaks, troughs, and mid-cycle phases.
+    - Final Output Target: The system outputs a master valuation oscillator bounded from -2 (extreme low value/undervalued) to +2 (extreme high value/overvalued).
+    - It aggregates metrics across three main pillars:
+      1. On-chain metrics (e.g., Realized Price, MVRV Z-Score, Puell Multiple, NUPL).
+      2. Sentiment indicators (e.g., Fear & Greed Index, social sentiment, funding rates).
+      3. Technical indicators (e.g., moving average crossovers, PI Cycle Top, RSI/MACD on high timeframes).
+    - Database is SQLite, storing aggregated time-series metrics, valuation models, and scraped data.
+
+  System Architecture & Data Workflow:
+    1. Raw Data Ingestion: Fetch raw data from online sources and store it directly into SQLite (creating new tables per source as needed). Every data source must expose a callable function to fetch new data incrementally or rebuild entirely from scratch (from 0).
+    2. Component Modeling: Each raw data stream serves as a system "component". Components must be manipulable via a statistical workflow to generate a model (e.g., transforming the metric to the -2 to +2 scale, applying distributions, etc.).
+    3. Modular Design Rule (One Component = One Script): Each component MUST be contained in its own dedicated Python script. This script serves as a "playground" allowing researchers to visualize the data and manipulate model parameters (like window length, thresholds, etc.).
+  
+  Tech Stack & Directory Structure:
+    - Node.js Runtime & Package Manager: BUN (always use bun for installing, running, building, and deploying JS/TS).
+    - Backend: Hono framework running on Bun.
+    - Frontend: Vite + React running on Bun.
+    - Statistical Calculation & Data Scraping: Python (use `pip` instead of `pip3` for installing dependencies).
+    - Database: SQLite (local file database).
+    
+    Proposed Project Structure:
+      - /quant: Python module for data scraping, onchain metrics calculations, statistical models, and pytest suite.
+      - /backend: Hono-based API service serving stats/valuation results from SQLite.
+      - /frontend: Vite + React SPA presenting interactive charts and valuation dashboards.
+      - /database: SQLite schemas, migrations, and database seeders.
+  
+  Development Conventions:
+    - Package manager rules: Always run `bun install` or `bun add` for node dependencies. Use `python -m pip install -r requirements.txt` for Python dependencies.
+    - Python testing: Use `python -m pytest -xvs` for fast/verbose validation, and `python -m pytest --cov` for full validation.
+    - Serialization:
+      - Python/Pydantic: Pydantic v2 is used. Remember that underscore-prefixed fields (e.g., `_fallback`) are treated as private attributes and excluded from serialization (`model_dump()`). Always use non-underscore names for API response fields.
+      - Use SerializerV2 patterns for any new features (SerializerV1 is legacy-only). Do not copy legacy patterns.
+    - Response Alignment: Ensure API responses exactly match the spec scenarios. Use field aliases (e.g., in Python or TypeScript/Hono) to guarantee backward-compatibility if spec field names diverge from code variables.
+    - Zero Assumption of Keys: Never assume API keys exist. Always build config mechanisms to ask for or load them gracefully.
+    - Git: Never force push (`git push --force` or `--force-with-lease`). Always run `git pull --rebase` first, resolve conflicts locally, and push normally.
+
+# Per-artifact rules
+# Add custom rules for specific artifacts.
+rules:
+  proposal:
+    - "Define the business problem, goals, and non-goals of the feature."
+    - "Explain the quantitative/statistical model or data source being integrated."
+    - "Describe the user experience (UX) and how the new metrics will be presented on the frontend."
+  specs:
+    - "List exact database schema modifications, tables, columns, and types."
+    - "Define specific API endpoints, HTTP methods, and exact JSON response/request payloads."
+    - "Create explicit test cases/scenarios representing valid, edge-case, and error inputs."
+    - "Specify target response field names precisely. Do not use underscore-prefixed fields for serialized response fields."
+  design:
+    - "Outline the software architecture: how the Hono backend retrieves metrics from SQLite and how Python calculations are run/cached."
+    - "Provide the SQL schema definitions and database indexing strategy for quick timeseries queries."
+    - "Detail frontend component design, charts (e.g. Recharts/Chart.js), state management, and API client calls."
+  tasks:
+    - "Break down implementation into small, logical tasks (ideally under 2-3 hours each)."
+    - "Every coding task must specify corresponding unit tests (e.g. pytest for Python, Bun test for frontend/backend)."
+    - "Include a explicit manual user validation task at the end of each feature block."
+    - "Always include a final auto-verification task that performs:
+        1. Reading all artifacts (proposal, design, specs, tasks) to ensure zero gaps.
+        2. Verifying every SHALL/MUST requirement against the code.
+        3. Launching the Hono server locally and running E2E verification with `curl`.
+        4. Spawning parallel reviewer subagents to audit the implementation for correctness, conventions, and style consistency."
+
