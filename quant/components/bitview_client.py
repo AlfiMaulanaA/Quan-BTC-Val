@@ -72,8 +72,8 @@ def fetch_series(series_name: str, index: str = "day1", start_date: str | None =
     if not isinstance(data, list):
         raise BitviewClientError(f"Expected JSON list response, got {type(data)}")
 
-    # Parse dates starting from Jan 3, 2009
-    start_dt = datetime(2009, 1, 3)
+    # Parse dates starting from Jan 1, 2009 for daily data, or Jan 3, 2009 for weekly data
+    start_dt = datetime(2009, 1, 3) if index == "week1" else datetime(2009, 1, 1)
     delta = timedelta(weeks=1) if index == "week1" else timedelta(days=1)
     
     parsed_start = date_parser.parse(start_date).replace(tzinfo=None) if start_date else None

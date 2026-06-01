@@ -15,7 +15,7 @@ def fetch_bitview_ohlc():
     resp.raise_for_status()
     data = resp.json()
     
-    start_date = datetime(2009, 1, 3)
+    start_date = datetime(2009, 1, 1)
     results = []
     
     for i, row in enumerate(data):

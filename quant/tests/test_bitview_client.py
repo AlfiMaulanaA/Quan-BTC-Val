@@ -17,10 +17,10 @@ def test_fetch_series_success(mock_get):
     
     assert len(df) == 3
     assert list(df.columns) == ["date", "value"]
-    # Verify starting date is 2009-01-03
-    assert df.loc[0, "date"] == "2009-01-03T00:00:00Z"
-    assert df.loc[1, "date"] == "2009-01-04T00:00:00Z"
-    assert df.loc[2, "date"] == "2009-01-05T00:00:00Z"
+    # Verify starting date is 2009-01-01
+    assert df.loc[0, "date"] == "2009-01-01T00:00:00Z"
+    assert df.loc[1, "date"] == "2009-01-02T00:00:00Z"
+    assert df.loc[2, "date"] == "2009-01-03T00:00:00Z"
     assert df.loc[0, "value"] == 10.0
     assert df.loc[2, "value"] == 14.5
 
@@ -62,10 +62,10 @@ def test_fetch_series_with_start_date(mock_get):
     mock_resp.json.return_value = [10.0, 11.0, 12.0]
     mock_get.return_value = mock_resp
 
-    # Filter with start_date corresponding to the second day (2009-01-04)
-    df = fetch_series("test_series", index="day1", start_date="2009-01-04")
+    # Filter with start_date corresponding to the second day (2009-01-02)
+    df = fetch_series("test_series", index="day1", start_date="2009-01-02")
     assert len(df) == 2
-    assert df.loc[0, "date"] == "2009-01-04T00:00:00Z"
+    assert df.loc[0, "date"] == "2009-01-02T00:00:00Z"
     assert df.loc[0, "value"] == 11.0
 
 @patch('requests.get')
