@@ -11,7 +11,7 @@ import {
   ReferenceArea,
   ReferenceLine
 } from 'recharts';
-import { CompositeDataPoint } from '../types/metrics';
+import type { CompositeDataPoint } from '../types/metrics';
 
 interface CompositeChartProps {
   data: CompositeDataPoint[];
@@ -47,7 +47,7 @@ export const CompositeChart: React.FC<CompositeChartProps> = ({ data, loading })
   };
 
   // Tooltip formatter
-  const formatTooltip = (value: any, name: string) => {
+  const formatTooltip = (value: any, name: any) => {
     if (name === "btc_price") {
       if (value === null || value === undefined) return ["N/A", "BTC Price"];
       return [`$${Number(value).toLocaleString(undefined, { maximumFractionDigits: 0 })}`, "BTC Price"];
@@ -58,7 +58,7 @@ export const CompositeChart: React.FC<CompositeChartProps> = ({ data, loading })
     return [value, name];
   };
 
-  const formatTooltipTitle = (label: string) => {
+  const formatTooltipTitle = (label: any) => {
     try {
       return new Date(label).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
     } catch {

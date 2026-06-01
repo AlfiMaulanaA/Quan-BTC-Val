@@ -46,7 +46,6 @@ export const MetricDetail: React.FC<MetricDetailProps> = ({
     );
   }
 
-  const latestPoint = data[data.length - 1];
   const color = getValuationColor(metric.normalized_value);
   
   // Detect if metric is inverted
@@ -62,7 +61,7 @@ export const MetricDetail: React.FC<MetricDetailProps> = ({
     }
   };
 
-  const formatTooltip = (value: any, name: string) => {
+  const formatTooltip = (value: any, name: any) => {
     if (name === "btc_price") {
       if (value === null || value === undefined) return ["N/A", "BTC Price"];
       return [`$${Number(value).toLocaleString()}`, "BTC Price"];
@@ -139,7 +138,7 @@ export const MetricDetail: React.FC<MetricDetailProps> = ({
               yAxisId="norm" 
               domain={[-2, 2]} 
               orientation="right" 
-              show={false}
+              hide={true}
             />
 
             <Tooltip 
