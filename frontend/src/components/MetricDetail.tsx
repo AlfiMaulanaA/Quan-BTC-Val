@@ -65,8 +65,8 @@ export const MetricDetail: React.FC<MetricDetailProps> = ({
         scaleMargins: { top: 0.1, bottom: 0.1 },
         mode: isLogScale ? PriceScaleMode.Logarithmic : PriceScaleMode.Normal
       },
-      timeScale: { borderColor: '#1e293b', timeVisible: false },
-      width: btcContainerRef.current.clientWidth,
+      timeScale: { borderColor: '#1e293b', visible: false },
+      width: btcContainerRef.current.clientWidth || 600,
       height: 220,
     });
 
@@ -87,8 +87,8 @@ export const MetricDetail: React.FC<MetricDetailProps> = ({
       grid: { vertLines: { color: '#1e293b', style: 1 }, horzLines: { color: '#1e293b', style: 1 } },
       crosshair: { mode: CrosshairMode.Normal, vertLine: { color: '#555555' }, horzLine: { color: '#555555' } },
       rightPriceScale: { borderColor: '#1e293b', scaleMargins: { top: 0.1, bottom: 0.1 } },
-      timeScale: { borderColor: '#1e293b', timeVisible: false },
-      width: rawContainerRef.current.clientWidth,
+      timeScale: { borderColor: '#1e293b', visible: false },
+      width: rawContainerRef.current.clientWidth || 600,
       height: 180,
     });
 
@@ -127,8 +127,8 @@ export const MetricDetail: React.FC<MetricDetailProps> = ({
       grid: { vertLines: { color: '#1e293b', style: 1 }, horzLines: { color: '#1e293b', style: 1 } },
       crosshair: { mode: CrosshairMode.Normal, vertLine: { color: '#555555' }, horzLine: { color: '#555555' } },
       rightPriceScale: { borderColor: '#1e293b', scaleMargins: { top: 0.1, bottom: 0.1 } },
-      timeScale: { borderColor: '#1e293b', timeVisible: false },
-      width: oscContainerRef.current.clientWidth,
+      timeScale: { borderColor: '#1e293b', visible: true, timeVisible: false },
+      width: oscContainerRef.current.clientWidth || 600,
       height: 150,
     });
 
@@ -234,21 +234,29 @@ export const MetricDetail: React.FC<MetricDetailProps> = ({
       chartRaw.setCrosshairPosition(data.rawVal, param.time, rawSeries);
     });
 
-    const handleResize = () => {
-      if (btcContainerRef.current && chartBtcRef.current) {
-        chartBtcRef.current.applyOptions({ width: btcContainerRef.current.clientWidth });
+    // ResizeObserver to handle initial width layout computation dynamically
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width } = entry.contentRect;
+        if (width === 0) continue;
+        if (entry.target === btcContainerRef.current && chartBtcRef.current) {
+          chartBtcRef.current.resize(width, 220);
+        }
+        if (entry.target === rawContainerRef.current && chartRawRef.current) {
+          chartRawRef.current.resize(width, 180);
+        }
+        if (entry.target === oscContainerRef.current && chartOscRef.current) {
+          chartOscRef.current.resize(width, 150);
+        }
       }
-      if (rawContainerRef.current && chartRawRef.current) {
-        chartRawRef.current.applyOptions({ width: rawContainerRef.current.clientWidth });
-      }
-      if (oscContainerRef.current && chartOscRef.current) {
-        chartOscRef.current.applyOptions({ width: oscContainerRef.current.clientWidth });
-      }
-    };
-    window.addEventListener('resize', handleResize);
+    });
+
+    if (btcContainerRef.current) resizeObserver.observe(btcContainerRef.current);
+    if (rawContainerRef.current) resizeObserver.observe(rawContainerRef.current);
+    if (oscContainerRef.current) resizeObserver.observe(oscContainerRef.current);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
       chartBtc.remove();
       chartRaw.remove();
       chartOsc.remove();

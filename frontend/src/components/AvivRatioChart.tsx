@@ -157,7 +157,9 @@ export const AvivRatioChart = () => {
           scaleMargins: { top: 0.1, bottom: 0.1 },
           mode: PriceScaleMode.Logarithmic
         },
-        timeScale: { borderColor: '#222222', timeVisible: false },
+        timeScale: { borderColor: '#222222', visible: false },
+        width: btcContainerRef.current.clientWidth || 600,
+        height: 300,
       });
 
       const btcSeries = chartBtc.addSeries(CandlestickSeries, {
@@ -177,7 +179,9 @@ export const AvivRatioChart = () => {
         grid: { vertLines: { color: '#222222', style: 1 }, horzLines: { color: '#222222', style: 1 } },
         crosshair: { mode: CrosshairMode.Normal, vertLine: { color: '#555555' }, horzLine: { color: '#555555' } },
         rightPriceScale: { borderColor: '#222222', scaleMargins: { top: 0.1, bottom: 0.1 } },
-        timeScale: { borderColor: '#222222', timeVisible: false },
+        timeScale: { borderColor: '#222222', visible: false },
+        width: chartContainerRef.current.clientWidth || 600,
+        height: 300,
       });
 
       const rawSeries = chart1.addSeries(LineSeries, {
@@ -196,7 +200,9 @@ export const AvivRatioChart = () => {
         grid: { vertLines: { color: '#222222', style: 1 }, horzLines: { color: '#222222', style: 1 } },
         crosshair: { mode: CrosshairMode.Normal, vertLine: { color: '#555555' }, horzLine: { color: '#555555' } },
         rightPriceScale: { borderColor: '#222222', scaleMargins: { top: 0.1, bottom: 0.1 } },
-        timeScale: { borderColor: '#222222', timeVisible: false },
+        timeScale: { borderColor: '#222222', visible: true, timeVisible: false },
+        width: oscContainerRef.current.clientWidth || 600,
+        height: 250,
       });
 
       const oscSeries = chart2.addSeries(LineSeries, {
@@ -294,22 +300,29 @@ export const AvivRatioChart = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     rawSeriesRef.current?.setData(rawData as any);
 
-    const handleResize = () => {
-      if (btcContainerRef.current && chartBtcRef.current) {
-        chartBtcRef.current.applyOptions({ width: btcContainerRef.current.clientWidth });
+    // ResizeObserver to handle initial width layout computation dynamically
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width } = entry.contentRect;
+        if (width === 0) continue;
+        if (entry.target === btcContainerRef.current && chartBtcRef.current) {
+          chartBtcRef.current.resize(width, 300);
+        }
+        if (entry.target === chartContainerRef.current && chart1Ref.current) {
+          chart1Ref.current.resize(width, 300);
+        }
+        if (entry.target === oscContainerRef.current && chart2Ref.current) {
+          chart2Ref.current.resize(width, 250);
+        }
       }
-      if (chartContainerRef.current && chart1Ref.current) {
-        chart1Ref.current.applyOptions({ width: chartContainerRef.current.clientWidth });
-      }
-      if (oscContainerRef.current && chart2Ref.current) {
-        chart2Ref.current.applyOptions({ width: oscContainerRef.current.clientWidth });
-      }
-    };
-    window.addEventListener('resize', handleResize);
-    setTimeout(handleResize, 0);
+    });
+
+    if (btcContainerRef.current) resizeObserver.observe(btcContainerRef.current);
+    if (chartContainerRef.current) resizeObserver.observe(chartContainerRef.current);
+    if (oscContainerRef.current) resizeObserver.observe(oscContainerRef.current);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
       if (chartBtcRef.current) {
         chartBtcRef.current.remove();
         chartBtcRef.current = null;

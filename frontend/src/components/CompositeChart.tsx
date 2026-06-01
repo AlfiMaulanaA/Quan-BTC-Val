@@ -41,7 +41,7 @@ export const CompositeChart: React.FC<CompositeChartProps> = ({ data, loading })
       height: 240,
     });
 
-    const btcSeries = chartBtc.addAreaSeries({
+    const btcSeries = chartBtc.addSeries(AreaSeries, {
       lineColor: '#ededed',
       topColor: 'rgba(237, 237, 237, 0.2)',
       bottomColor: 'rgba(237, 237, 237, 0.0)',
@@ -67,7 +67,7 @@ export const CompositeChart: React.FC<CompositeChartProps> = ({ data, loading })
       height: 180,
     });
 
-    const oscSeries = chartOsc.addAreaSeries({
+    const oscSeries = chartOsc.addSeries(AreaSeries, {
       lineColor: '#3b82f6',
       topColor: 'rgba(59, 130, 246, 0.2)',
       bottomColor: 'rgba(59, 130, 246, 0.0)',
