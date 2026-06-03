@@ -2,9 +2,7 @@
 
 ## Purpose
 TBD - created by archiving change build-valuation-dashboard.
-
 ## Requirements
-
 ### Requirement: BaseComponent Abstract Interface
 The system SHALL define an abstract base class `BaseComponent` at `quant/components/base.py` that enforces a standard pipeline interface for all 17 valuation metric components.
 
@@ -101,8 +99,8 @@ Every component SHALL store its processed data into the `timeseries_metrics` tab
 The system SHALL provide a component at `quant/components/aviv_ratio.py` that fetches, computes, and stores the AVIV Ratio Z-Score.
 
 - The component SHALL set `METRIC_NAME` to `"aviv_ratio"` and `CATEGORY` to `"fundamental"`
-- `fetch_data()` SHALL fetch the `cointime_price` and `price` series from bitview.space
-- The component SHALL compute the AVIV Ratio as `price / cointime_price` (True Market Mean), then derive the Z-score from the ratio's historical distribution
+- `fetch_data()` SHALL fetch the `true_market_mean` and `price` series from bitview.space
+- The component SHALL compute the AVIV Ratio as `price / true_market_mean` (True Market Mean), then derive the Z-score from the ratio's historical distribution
 - The component SHALL support both full rebuild and incremental delta fetch
 
 #### Scenario: Successful AVIV Ratio fetch and store
@@ -114,8 +112,9 @@ The system SHALL provide a component at `quant/components/aviv_ratio.py` that fe
 The system SHALL provide a component at `quant/components/aviv_nupl.py` that fetches, computes, and stores the AVIV Net Unrealized Profit/Loss.
 
 - The component SHALL set `METRIC_NAME` to `"aviv_nupl"` and `CATEGORY` to `"fundamental"`
-- `fetch_data()` SHALL fetch the `cointime_active_cap` and `cointime_investor_cap` series from bitview.space
-- The component SHALL compute AVIV NUPL as `(active_cap - investor_cap) / active_cap`
+- `fetch_data()` SHALL fetch the `true_market_mean` and `price` series from bitview.space
+- The component SHALL compute AVIV NUPL as `(price - true_market_mean) / price`
+- The component SHALL support both full rebuild and incremental delta fetch
 
 #### Scenario: Successful AVIV NUPL fetch and store
 - **WHEN** `run_pipeline()` is executed on the AVIV NUPL component
@@ -403,3 +402,4 @@ All components that fetch data from external APIs (bitview.space, alternative.me
 - **WHEN** a component's `fetch_data()` receives an HTTP 200 response with an empty data array
 - **THEN** `fetch_data()` SHALL return an empty DataFrame
 - **THEN** `run_pipeline()` SHALL return `status` equal to `"success"` with `rows_fetched` equal to `0` and `rows_stored` equal to `0`
+
