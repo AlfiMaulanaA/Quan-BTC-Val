@@ -41,24 +41,24 @@ Logic flows strictly according to the progressive disclosure boundaries outlined
 
 ```mermaid
 graph TD
-    subgraph Quant Module (Python)
+    subgraph "Quant Module (Python)"
         A[bitview.space Scraper / External APIs] -->|Fetch delta or rebuild from 0| B[ComponentScripts quant/components/*.py]
         B -->|Ingest Raw & Normalized| C[Database database/metrics.db]
     end
     
-    subgraph Database (SQLite)
+    subgraph "Database (SQLite)"
         C -->|WAL Concurrency Mode| D[(timeseries_metrics Table)]
         C -->|Static Configurations| E[(metric_config Table)]
     end
     
-    subgraph Backend API (Hono + Bun)
+    subgraph "Backend API (Hono + Bun)"
         D --> F[Generic API Endpoints backend/index.ts]
         E --> F
         F -->|GET /api/metrics| G[Frontend Client]
         F -->|GET /api/composite| G
     end
 
-    subgraph Frontend (React + Vite)
+    subgraph "Frontend (React + Vite)"
         G --> H[DashboardLayout]
         H --> I[Sidebar Collapsible Categories]
         H --> J[Master Composite Synced Chart]
