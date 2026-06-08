@@ -1,4 +1,4 @@
-import { test, expect, describe } from 'bun:test';
+import { test, expect, describe } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MetricCard } from './MetricCard';
 import type { MetricSummary } from '../types/metrics';

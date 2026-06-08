@@ -108,10 +108,18 @@ graph TD
    python -m pip install -r requirements.txt
    ```
 
-3. **Install Bun Dependencies:**
+3. **Install Dependencies (Frontend & Backend):**
+   If you have Bun installed (recommended):
    ```bash
-   bun install
+   cd backend && bun install
+   cd ../frontend && bun install
    ```
+   If you only have Node/npm available:
+   ```bash
+   cd backend && npm install
+   cd ../frontend && npm install
+   ```
+   *(Return to the root directory `cd ..` before proceeding)*
 
 4. **Seed Database Configurations & Run Data Pipeline Ingestion:**
    ```bash
@@ -121,15 +129,27 @@ graph TD
    *(This downloads and normalized historical datasets since 2016 for all 17 components).*
 
 5. **Start Hono Backend Server:**
+   Using Bun:
    ```bash
    cd backend
    bun run index.ts
    ```
+   Using Node/npm fallback:
+   ```bash
+   cd backend
+   npm run start:node
+   ```
 
 6. **Start React Frontend Server (Vite):**
+   Using Bun:
    ```bash
    cd frontend
    bun run dev
+   ```
+   Using Node/npm fallback:
+   ```bash
+   cd frontend
+   npm run dev
    ```
 
 Open your local browser to **[http://localhost:5173/](http://localhost:5173/)** to access the dashboard.
@@ -219,7 +239,7 @@ We require 100% testing on all modifications. Ensure all tests pass before propo
   ```
 * **Frontend Component Tests:**
   ```bash
-  cd frontend && bun test
+  cd frontend && bun test  # or npm run test
   ```
 
 ---

@@ -11,7 +11,7 @@ process.env.DB_PATH = TEST_DB_PATH;
 let app: any;
 let normalizeValue: any;
 beforeAll(async () => {
-  const mod = await import("./index");
+  const mod = await import("./app");
   app = mod.app;
   normalizeValue = mod.normalizeValue;
   
@@ -194,23 +194,23 @@ test("GET /api/audit/summary (200 with data) and rescaled composite", async () =
   const runDate = "2026-06-01";
   
   // Insert mock audit stats
-  db.run(`
+  db.prepare(`
     INSERT INTO audit_indicator_stats 
     (metric_name, run_date, count, mean, std, skewness, kurtosis, p2_5, p5, p25, p50, p75, p95, p97_5, min_val, max_val, pct_at_plus2, pct_at_minus2)
     VALUES ('aviv_ratio', ?, 100, 0.1, 0.5, 0.0, 0.0, -1.0, -0.8, -0.2, 0.0, 0.3, 0.8, 1.0, -1.5, 1.5, 0.02, 0.01)
-  `, [runDate]);
+  `).run(runDate);
   
   // Insert mock correlation
-  db.run(`
+  db.prepare(`
     INSERT INTO audit_correlation_matrix (metric_a, metric_b, run_date, pearson, spearman)
     VALUES ('aviv_ratio', 'mvrv_z', ?, 0.88, 0.87)
-  `, [runDate]);
+  `).run(runDate);
   
   // Insert mock composite params
-  db.run(`
+  db.prepare(`
     INSERT INTO audit_composite_params (run_date, raw_min, raw_max, raw_p2_5, raw_p50, raw_p97_5, rescale_method)
     VALUES (?, -0.8, 0.9, -0.5, 0.1, 0.7, 'percentile_piecewise')
-  `, [runDate]);
+  `).run(runDate);
   
   db.close();
 
@@ -241,7 +241,7 @@ test("Seed does not overwrite pre-existing metric_config row", async () => {
   const db = new Database(TEST_DB_PATH);
   
   // 1. Manually insert or update a metric config row
-  db.run(`
+  db.exec(`
     UPDATE metric_config
     SET t_minus_2 = 999.0
     WHERE metric_name = 'aviv_ratio'
@@ -253,7 +253,7 @@ test("Seed does not overwrite pre-existing metric_config row", async () => {
   
   // 2. Re-run seed logic (simulated)
   // Let's import/access the SEED_DATA if we can, or just re-execute what's in index.ts using INSERT OR IGNORE
-  db.run(`
+  db.exec(`
     INSERT OR IGNORE INTO metric_config
     (metric_name, t_plus_2, t_plus_1, t_zero, t_minus_1, t_minus_2)
     VALUES ('aviv_ratio', -2.0, -1.0, NULL, 1.0, 2.0)
@@ -292,17 +292,17 @@ test("normalizeValue() behaves identical to Python normalization", () => {
   // thresholds: t_plus_2=1.3, t_plus_1=1.6, t_minus_1=null, t_minus_2=null
   expect(normalizeValue(1.1, 1.3, 1.6, null, null)).toBeCloseTo(2.0);
   expect(normalizeValue(1.45, 1.3, 1.6, null, null)).toBeCloseTo(1.5);
-  expect(normalizeValue(2.5, 1.3, 1.6, null, null)).toBeCloseTo(0.0);
+  expect(normalizeValue(2.5, 1.3, 1.6, null, null)).toBeNull();
 
   // 5. Top-only (unrealized_sell_risk)
   // thresholds: t_plus_2=null, t_plus_1=null, t_minus_1=1.8, t_minus_2=2.2
   expect(normalizeValue(2.5, null, null, 1.8, 2.2)).toBeCloseTo(-2.0);
   expect(normalizeValue(2.0, null, null, 1.8, 2.2)).toBeCloseTo(-1.5);
-  expect(normalizeValue(1.0, null, null, 1.8, 2.2)).toBeCloseTo(0.0);
+  expect(normalizeValue(1.0, null, null, 1.8, 2.2)).toBeNull();
 
   // 6. Null input and edge cases
-  expect(normalizeValue(null, -2, -1, 1, 2)).toBeNaN();
-  expect(normalizeValue(NaN, -2, -1, 1, 2)).toBeNaN();
+  expect(normalizeValue(null, -2, -1, 1, 2)).toBeNull();
+  expect(normalizeValue(NaN, -2, -1, 1, 2)).toBeNull();
   expect(normalizeValue(5.0, null, null, null, null)).toBeCloseTo(0.0);
 });
 
@@ -310,15 +310,15 @@ test("POST /api/metrics/renormalize/:metric_name endpoint", async () => {
   const db = new Database(TEST_DB_PATH);
   
   // Clean/setup data
-  db.run("DELETE FROM timeseries_metrics WHERE metric_name = 'aviv_ratio'");
-  db.run("INSERT INTO timeseries_metrics (date, metric_name, raw_value, normalized_value, btc_price) VALUES (?, ?, ?, ?, ?)",
-    ["2023-01-01", "aviv_ratio", 1.5, 0.0, 20000.0] // raw 1.5, initial normalized 0.0
+  db.prepare("DELETE FROM timeseries_metrics WHERE metric_name = 'aviv_ratio'").run();
+  db.prepare("INSERT INTO timeseries_metrics (date, metric_name, raw_value, normalized_value, btc_price) VALUES (?, ?, ?, ?, ?)").run(
+    "2023-01-01", "aviv_ratio", 1.5, 0.0, 20000.0
   );
   
   // Set threshold: aviv_ratio t_minus_2 = 2.0, t_minus_1 = 1.0, t_plus_1 = -1.0, t_plus_2 = -2.0
   // Midpoint between t_plus_1 (-1.0) and t_minus_1 (1.0) is 0.0, where raw_value 1.5 is in region [1.0, 2.0]
   // normalized value = -1.0 - safe_div(1.5 - 1.0, 2.0 - 1.0) = -1.0 - 0.5 = -1.5.
-  db.run("UPDATE metric_config SET t_minus_2 = 2.0, t_minus_1 = 1.0, t_plus_1 = -1.0, t_plus_2 = -2.0 WHERE metric_name = 'aviv_ratio'");
+  db.prepare("UPDATE metric_config SET t_minus_2 = 2.0, t_minus_1 = 1.0, t_plus_1 = -1.0, t_plus_2 = -2.0 WHERE metric_name = 'aviv_ratio'").run();
   db.close();
 
   // Test successful renormalization
