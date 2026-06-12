@@ -12,22 +12,11 @@ def run_all(db_path: str = "database/metrics.db", rebuild: bool = False, metric_
     if not metric_name:
         try:
             logger.info("Running BTC OHLC pipeline to fetch latest price data...")
-            from quant.btc_ohlc import fetch_bitview_ohlc
-            from database.db import init_db, insert_ohlc
-            init_db(db_path=db_path)
-            ohlc_data = fetch_bitview_ohlc()
-            for row in ohlc_data:
-                insert_ohlc(
-                    date=row['date'],
-                    open_price=row['open'],
-                    high=row['high'],
-                    low=row['low'],
-                    close=row['close'],
-                    db_path=db_path
-                )
-            logger.info(f"BTC OHLC pipeline executed successfully. Inserted {len(ohlc_data)} rows.")
+            from quant.btc_ohlc import run_pipeline as run_ohlc_pipeline
+            run_ohlc_pipeline(db_path=db_path, full_rebuild=rebuild)
         except Exception as e:
             logger.error(f"Failed to execute BTC OHLC pipeline: {type(e).__name__}: {str(e)}")
+
 
     component_classes = discover_components()
     if metric_name:

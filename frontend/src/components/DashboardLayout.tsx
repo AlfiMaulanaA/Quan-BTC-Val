@@ -101,15 +101,34 @@ export const DashboardLayout: React.FC = () => {
   
   const [refetching, setRefetching] = useState(false);
 
-  const handleRefetchAll = async () => {
+  const handleRefetchLatest = async () => {
     setRefetching(true);
     try {
       await runPipeline(null, false);
       await loadDashboardData();
-      alert('System pipeline completed successfully! Re-calculated all components & composite valuation score.');
+      alert('Latest data refetched successfully! Re-calculated all components & composite valuation score.');
     } catch (err: any) {
       console.error(err);
-      alert(`Pipeline execution failed: ${err.message || String(err)}`);
+      alert(`Refetch failed: ${err.message || String(err)}`);
+    } finally {
+      setRefetching(false);
+    }
+  };
+
+  const handleFullRebuild = async () => {
+    const confirmRebuild = window.confirm(
+      "WARNING: This will wipe all historical metric data and perform a full rebuild from scratch. This can take several minutes. Are you sure you want to proceed?"
+    );
+    if (!confirmRebuild) return;
+
+    setRefetching(true);
+    try {
+      await runPipeline(null, true);
+      await loadDashboardData();
+      alert('Database full rebuild completed successfully!');
+    } catch (err: any) {
+      console.error(err);
+      alert(`Full rebuild failed: ${err.message || String(err)}`);
     } finally {
       setRefetching(false);
     }
@@ -204,9 +223,9 @@ export const DashboardLayout: React.FC = () => {
           </div>
           <div className="navbar-right" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <button 
-              onClick={handleRefetchAll} 
+              onClick={handleRefetchLatest} 
               disabled={refetching}
-              className="btn-refetch-all"
+              className="btn-refetch-latest"
               style={{
                 background: 'var(--bg-surface-elevated)',
                 border: '1px solid var(--border-strong)',
@@ -223,7 +242,29 @@ export const DashboardLayout: React.FC = () => {
                 opacity: refetching ? 0.5 : 1
               }}
             >
-              {refetching ? '🔄 REFETCHING...' : '🔄 REFETCH ALL DATA'}
+              {refetching ? '🔄 REFETCHING...' : '🔄 REFETCH LATEST'}
+            </button>
+            <button 
+              onClick={handleFullRebuild} 
+              disabled={refetching}
+              className="btn-full-rebuild"
+              style={{
+                background: 'var(--bg-surface-elevated)',
+                border: '1px solid var(--accent-rose)',
+                color: 'var(--accent-rose)',
+                fontFamily: 'monospace',
+                fontSize: '11px',
+                padding: '0.4rem 0.8rem',
+                cursor: 'pointer',
+                borderRadius: '2px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                transition: 'all 0.2s',
+                opacity: refetching ? 0.5 : 1
+              }}
+            >
+              {refetching ? '🔄 REBUILDING...' : '⚠️ FULL REBUILD'}
             </button>
             <span className="navbar-datetime">SYSTEM_TIME: {new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
           </div>

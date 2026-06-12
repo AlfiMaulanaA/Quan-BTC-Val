@@ -1,7 +1,10 @@
 import sqlite3
+import os
 from typing import List, Dict, Any, Optional
 
-DB_PATH = 'database/metrics.db'
+_current_dir = os.path.dirname(os.path.abspath(__file__))
+_project_root = os.path.dirname(_current_dir)
+DB_PATH = os.path.join(_project_root, 'database', 'metrics.db')
 
 def get_connection(db_path: str = DB_PATH) -> sqlite3.Connection:
     conn = sqlite3.connect(db_path)
@@ -148,6 +151,46 @@ def insert_ohlc(
     
     conn.commit()
     conn.close()
+
+def insert_ohlc_batch(
+    rows: List[Dict[str, Any]],
+    db_path: str = DB_PATH
+) -> int:
+    """Insert or replace multiple OHLC records in a single transaction."""
+    if not rows:
+        return 0
+    conn = get_connection(db_path)
+    cursor = conn.cursor()
+    try:
+        data = [
+            (row['date'], row['open'], row['high'], row['low'], row['close'])
+            for row in rows
+        ]
+        cursor.executemany('''
+            INSERT OR REPLACE INTO btc_ohlc 
+            (date, open, high, low, close)
+            VALUES (?, ?, ?, ?, ?)
+        ''', data)
+        conn.commit()
+        return len(rows)
+    finally:
+        conn.close()
+
+def get_latest_ohlc_date(db_path: str = DB_PATH) -> Optional[str]:
+    """Get the latest date in the btc_ohlc table."""
+    conn = get_connection(db_path)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT MAX(date) FROM btc_ohlc")
+        row = cursor.fetchone()
+        if row and row[0]:
+            return str(row[0])
+        return None
+    except sqlite3.OperationalError:
+        return None
+    finally:
+        conn.close()
+
 
 def get_metrics(metric_name: str, db_path: str = DB_PATH) -> List[Dict[str, Any]]:
     """Retrieve all records for a specific metric."""

@@ -374,6 +374,32 @@ test("GET /api/metrics/config/defaults endpoint", async () => {
   });
 });
 
+test("POST /api/pipeline/run endpoint with delta mode", async () => {
+  const res = await app.request("/api/pipeline/run", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ metric: "non_existent_metric", rebuild: false })
+  });
+  
+  expect(res.status).toBe(200);
+  const body = await res.json();
+  expect(body.success).toBe(true);
+}, 20000);
+
+test("POST /api/pipeline/run endpoint with rebuild mode", async () => {
+  const res = await app.request("/api/pipeline/run", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ metric: "non_existent_metric", rebuild: true })
+  });
+  
+  expect(res.status).toBe(200);
+  const body = await res.json();
+  expect(body.success).toBe(true);
+}, 20000);
+
+
+
 
 
 

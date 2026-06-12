@@ -8,12 +8,13 @@ if (typeof process !== 'undefined' && process.versions && (process.versions as a
 } else {
   Database = require('better-sqlite3');
 }
-import { join } from 'path';
+import { join, basename } from 'path';
 
 const app = new Hono();
 
 // Connect to SQLite DB
-const dbPath = process.env.DB_PATH || join(process.cwd(), '..', 'database', 'metrics.db');
+const projectRoot = basename(process.cwd()) === 'backend' ? join(process.cwd(), '..') : process.cwd();
+const dbPath = process.env.DB_PATH || join(projectRoot, 'database', 'metrics.db');
 const db = new Database(dbPath, { create: true });
 db.exec("PRAGMA journal_mode=WAL;");
 
@@ -651,7 +652,7 @@ app.post('/api/pipeline/run', async (c) => {
     }
 
     console.log(`Executing: python3 ${runAllArgs.join(" ")}`);
-    const { stdout: runAllOutput, stderr: runAllError, exitCode: runAllExitCode } = await runPythonCommand(["python3", ...runAllArgs], join(process.cwd(), ".."));
+    const { stdout: runAllOutput, stderr: runAllError, exitCode: runAllExitCode } = await runPythonCommand(["python3", ...runAllArgs], projectRoot);
 
     if (runAllExitCode !== 0) {
       console.error("Pipeline run failed:", runAllError);
@@ -666,7 +667,7 @@ app.post('/api/pipeline/run', async (c) => {
     // 2. Run audit runner to fit composite rescaling parameters
     const auditArgs = ["-m", "quant.audit.runner", "--db-path", dbFile];
     console.log(`Executing: python3 ${auditArgs.join(" ")}`);
-    const { stdout: auditOutput, stderr: auditError, exitCode: auditExitCode } = await runPythonCommand(["python3", ...auditArgs], join(process.cwd(), ".."));
+    const { stdout: auditOutput, stderr: auditError, exitCode: auditExitCode } = await runPythonCommand(["python3", ...auditArgs], projectRoot);
 
     if (auditExitCode !== 0) {
       console.error("Audit run failed:", auditError);
