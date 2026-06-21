@@ -65,7 +65,7 @@ describe('DashboardLayout Component', () => {
   });
 
   test('renders refetch buttons and triggers pipeline correctly', async () => {
-    const fetchSpy = vi.fn().mockImplementation((url, options) => {
+    const fetchSpy = vi.fn().mockImplementation((url, _options) => {
       if (url.includes('/api/metrics/configs')) {
         return Promise.resolve({ ok: true, json: () => Promise.resolve(mockConfigs) });
       }

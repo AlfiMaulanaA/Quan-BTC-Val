@@ -7,11 +7,11 @@ cd "$DIR"
 
 # Define DB Path
 export DB_PATH="$DIR/database/metrics.db"
-export PORT=3000
+export PORT=3300
 
-# Kill processes using ports 3000 and 5173
-echo "Freeing ports 3000 and 5173..."
-for port in 3000 5173; do
+# Kill processes using ports 3000 and 3300
+echo "Freeing ports 3000 and 3300..."
+for port in 3000 3300; do
   PID=$(lsof -t -i:$port 2>/dev/null)
   if [ -n "$PID" ]; then
     echo "Killing process on port $port (PID: $PID)"
@@ -23,7 +23,7 @@ done
 echo "=== STARTING QUANT BTC VALUATION SYSTEM ==="
 echo "Database Path: $DB_PATH"
 echo "Backend running on port: $PORT"
-echo "Frontend running on port: 5173"
+echo "Frontend running on port: 3000"
 echo "==========================================="
 
 # Function to clean up background processes on exit

@@ -16,9 +16,8 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   isActive,
   onClick
 }) => {
-  const normColor = getValuationColor(metric.normalized_value);
-  
-  // Format raw value nicely
+  const normColor = getValuationColor(metric.normalized_value ?? 0);
+
   const formatRawValue = (val: number) => {
     if (val === null || val === undefined) return 'N/A';
     if (Math.abs(val) >= 1000) {
@@ -27,7 +26,8 @@ export const MetricCard: React.FC<MetricCardProps> = ({
     return val.toFixed(4);
   };
 
-  const getInterpretationText = (score: number) => {
+  const getInterpretationText = (score: number | null) => {
+    if (score == null) return 'N/A';
     if (score >= 1.0) return 'UNDERVALUED (BUY)';
     if (score <= -1.0) return 'OVERVALUED (SELL)';
     return 'NEUTRAL';
@@ -48,7 +48,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
           className="metric-badge"
           style={{ backgroundColor: normColor, color: '#0f172a' }}
         >
-          {metric.normalized_value.toFixed(2)}
+          {metric.normalized_value != null ? metric.normalized_value.toFixed(2) : 'N/A'}
         </div>
       </div>
 
