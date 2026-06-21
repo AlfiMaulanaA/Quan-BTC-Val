@@ -1,0 +1,26 @@
+FROM node:20-slim AS deps
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 make g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY backend/package*.json ./
+RUN npm install
+
+FROM node:20-slim AS runtime
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libstdc++6 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY backend/ .
+
+ENV PORT=3300
+ENV DB_PATH=/data/metrics.db
+
+EXPOSE 3300
+
+CMD ["node", "runner.js", "start"]

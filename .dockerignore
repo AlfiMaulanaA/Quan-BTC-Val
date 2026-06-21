@@ -1,0 +1,16 @@
+**/.git
+**/.venv
+**/node_modules
+**/dist
+**/__pycache__
+**/*.pyc
+database/metrics.db
+database/metrics.db-shm
+database/metrics.db-wal
+docs/
+scratch/
+.antigravitycli/
+.pi/
+.agent/
+openspec/
+ecosystem.config.cjs

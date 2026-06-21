@@ -1,0 +1,55 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: quant-backend
+    restart: unless-stopped
+    ports:
+      - "3300:3300"
+    volumes:
+      - quant-db:/data
+    environment:
+      - PORT=3300
+      - DB_PATH=/data/metrics.db
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: quant-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile.pipeline
+    container_name: quant-pipeline
+    volumes:
+      - quant-db:/data
+    environment:
+      - DB_PATH=/data/metrics.db
+    profiles:
+      - pipeline
+    command: ["python", "-m", "quant.run_all"]
+
+  pipeline-rebuild:
+    build:
+      context: .
+      dockerfile: Dockerfile.pipeline
+    container_name: quant-pipeline-rebuild
+    volumes:
+      - quant-db:/data
+    environment:
+      - DB_PATH=/data/metrics.db
+    profiles:
+      - rebuild
+    command: ["sh", "-c", "python -m quant.seed_metric_config && python -m quant.run_all --rebuild"]
+
+volumes:
+  quant-db:
+    driver: local

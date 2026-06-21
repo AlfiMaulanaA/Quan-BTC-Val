@@ -1,0 +1,12 @@
+FROM python:3.10-slim
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY quant/ ./quant/
+COPY database/ ./database/
+
+ENV DB_PATH=/data/metrics.db
+
+CMD ["python", "-m", "quant.run_all"]
