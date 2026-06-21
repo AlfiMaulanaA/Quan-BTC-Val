@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os
 import sys
 from quant.components.registry import discover_components
 
@@ -74,7 +75,7 @@ def print_summary(results: list[dict]):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run BTC Cycle Valuation System data pipelines")
     parser.add_argument("--rebuild", action="store_true", help="Trigger a full historical rebuild of all metrics")
-    parser.add_argument("--db-path", default="database/metrics.db", help="Path to the SQLite database file")
+    parser.add_argument("--db-path", default=os.environ.get("DB_PATH", "database/metrics.db"), help="Path to the SQLite database file")
     parser.add_argument("--metric", default=None, help="Trigger a pipeline for a specific metric only")
     args = parser.parse_args()
     

@@ -1,7 +1,7 @@
 import sqlite3
 import os
 
-DB_PATH = 'database/metrics.db'
+DB_PATH = os.environ.get('DB_PATH', 'database/metrics.db')
 
 # Threshold configurations for all metrics.
 # Format: (metric_name, t_plus_2, t_plus_1, t_zero, t_minus_1, t_minus_2)
